@@ -8,8 +8,9 @@ SDL_Window *mWindow=nullptr;
 SDL_Renderer *mRenderer=nullptr;
 SDL_GLContext gOpenGLContext = nullptr;
 bool gQuit = false;
+
 void InitalizeProgram(const char* title,int width,int height) {
-	if (SDL_Init(SDL_INIT_VIDEO))
+	if (SDL_Init(SDL_INIT_VIDEO)<0)
 	{
 		std::cout << "SDL3 could not be loaded" << std::endl;
 		exit(1);
@@ -25,21 +26,27 @@ void InitalizeProgram(const char* title,int width,int height) {
 		mRenderer = SDL_CreateRenderer(mWindow, "opengl");
 		SDL_SetWindowTitle(mWindow, title);
 		gOpenGLContext = SDL_GL_CreateContext(mWindow);
+
 		if (gOpenGLContext == nullptr)
 		{
 			std::cout << "OpenGL could not be loaded" << std::endl;
 		}
+		
+		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)){
+			std::cout << "Failed to load GLAD" << std::endl;
+		}
+		
 }		
 void Input() {
 	SDL_Event e;
 	while (SDL_PollEvent(&e) != 0) {
-		switch (e.type)
-		{
-			case SDL_EVENT_QUIT:
-				std::cout << "QUITTING" << std :: endl;
-				gQuit = true;
-				//SDL_Quit();
-		}
+		//switch (e.type)
+		//{
+		//	case SDL_EVENT_QUIT:
+		//		std::cout << "QUITTING" << std :: endl;
+		//		gQuit = true;
+		//		//SDL_Quit();
+		//}
 	}
 }
 void PreDraw(){}
@@ -58,5 +65,6 @@ void CleanUp(){
 	SDL_Quit();
 }
 int main(){
-	InitalizeProgram();
+	InitalizeProgram("Nick NIck",640,480);
+	MainLoop();
 }
