@@ -30,11 +30,27 @@ void InitalizeProgram(const char* title,int width,int height) {
 			std::cout << "OpenGL could not be loaded" << std::endl;
 		}
 }		
-
+void Input() {
+	SDL_Event e;
+	while (SDL_PollEvent(&e) != 0) {
+		switch (e.type)
+		{
+			case SDL_EVENT_QUIT:
+				std::cout << "QUITTING" << std :: endl;
+				gQuit = true;
+				//SDL_Quit();
+		}
+	}
+}
+void PreDraw(){}
+void Draw(){}
 void MainLoop() {
 	while (!gQuit) 
 	{
-
+		Input();
+		PreDraw();
+		Draw();
+		SDL_GL_SwapWindow(mWindow);//updates screen
 	}
 }
 void CleanUp(){
