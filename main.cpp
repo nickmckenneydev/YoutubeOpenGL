@@ -28,9 +28,14 @@ void VertexSpecifiction() {
 	glGenVertexArrays(1, &gVertexArrayObject);
 	glBindVertexArray(gVertexArrayObject);//Select the vertex array I created
 	
-		glGenBuffers(1, &gVertexBufferObject);
-	glBindVertexBuffer(0, gVertexBufferObject, 0, 0);
-	//generate VBO
+		glGenBuffers(1, &gVertexBufferObject);//generate VBO
+	glBindBuffer(GL_ARRAY_BUFFER, gVertexArrayObject);
+	glBufferData(GL_ARRAY_BUFFER, vertexPosition.size() * sizeof(GLfloat), vertexPosition.data(), GL_STATIC_DRAW);
+	glEnableVertexArrayAttrib(gVertexArrayObject, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glBindVertexArray(0);
+	glDisableVertexAttribArray(0);
+
 
 }
 int InitalizeProgram(const char* title,int width,int height) {
