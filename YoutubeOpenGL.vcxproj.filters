@@ -22,4 +22,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Users\Nick\Downloads\test.bmp">
+      <Filter>Source Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
