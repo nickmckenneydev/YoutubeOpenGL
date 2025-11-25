@@ -1,6 +1,7 @@
-#include <glad/glad.h>
 #include <SDL3/SDL.h>
+#include <glad/glad.h>
 #include <iostream>
+#include <vector>
 //GLOBALS
 SDL_Window* mWindow = nullptr;
 SDL_GLContext gOpenGLContext = nullptr;
@@ -8,9 +9,29 @@ SDL_GLContext gOpenGLContext = nullptr;
 SDL_Surface* mSurface;
 
 bool gQuit = false;
+//VAO globals
+GLuint gVertexArrayObject = 0;
+//VBO globals
+GLuint gVertexBufferObject = 0;
+//Functions
 void GetOpenGLVersionInfo() {
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
 	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
+}
+void VertexSpecifiction() {
+	//create verticies on CPU side
+	const std::vector<GLfloat> vertexPosition{
+		-0.8f,-0.8f,0,
+		0.8f,-0.8f,0,
+		-0.0f,0.8f,0,
+	};
+	glGenVertexArrays(1, &gVertexArrayObject);
+	glBindVertexArray(gVertexArrayObject);//Select the vertex array I created
+	
+		glGenBuffers(1, &gVertexBufferObject);
+	glBindVertexBuffer(0, gVertexBufferObject, 0, 0);
+	//generate VBO
+
 }
 int InitalizeProgram(const char* title,int width,int height) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -79,11 +100,18 @@ void CleanUp(){
 	SDL_Quit();
 }
 int main(){
-	InitalizeProgram("Nick NIck",640,480);
+	InitalizeProgram("Nick",640,480);
+	VertexSpecifiction();
+	CreateGraphicsPipeline();
 	MainLoop();
+	CleanUp();
+	return 0;
 }
 
 //notes
 // glGen -> Allocation
 //VAO -> How to Access VBO glGenVertexArrays,glBindVertexArray
 //VBO -> Actual Data  glGenBuffer,glBindBuffer,glBufferData
+
+//Vertex Specificiation -> VAO and VBO -> veritices
+//Vertex shader
