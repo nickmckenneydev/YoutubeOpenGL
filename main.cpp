@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <vector>
+#include <cstring>
+#include <string>
 //GLOBALS
 SDL_Window* mWindow = nullptr;
 SDL_GLContext gOpenGLContext = nullptr;
@@ -14,6 +16,23 @@ GLuint gVertexArrayObject = 0;
 //VBO globals
 GLuint gVertexBufferObject = 0;
 //Functions
+GLuint gGraphicsPipelineShaderProgram = 0;
+//char* vs std::string&
+//std.cString
+GLuint CompileShader(GLuint type,std::string& source) {
+
+}
+GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmentShaderSource) {
+	GLuint programObject = glCreateProgram();
+	GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
+	GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+}
+void CreateGraphicsPipeline() {
+	
+	std::string vs="w";
+	std::string fs="a";
+	gGraphicsPipelineShaderProgram = CreateShaderProgram(vs, fs);
+}
 void GetOpenGLVersionInfo() {
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
 	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
@@ -35,8 +54,6 @@ void VertexSpecifiction() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
-
-
 }
 int InitalizeProgram(const char* title,int width,int height) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -105,9 +122,19 @@ void CleanUp(){
 	SDL_Quit();
 }
 int main(){
+	std::string goatName = "gruff";
+
+	char* goatNameAsCStr = goatName.data();
+	std::cout << "&goatName:" << &goatName << std::endl;
+	std::cout << "&goatNameAsCStr:" << &goatNameAsCStr << std::endl;
+	goatNameAsCStr[0] -= 32;
+	std::cout << "&goatName.c_str()" << &goatName.c_str() << std::endl;
+
+
+
 	InitalizeProgram("Nick",640,480);
 	VertexSpecifiction();
-	CreateGraphicsPipeline();
+	//CreateGraphicsPipeline();
 	MainLoop();
 	CleanUp();
 	return 0;
