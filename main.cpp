@@ -11,14 +11,33 @@ SDL_GLContext gOpenGLContext = nullptr;
 SDL_Surface* mSurface;
 
 bool gQuit = false;
+
+GLuint gScreenWidth = 320;
+GLuint gScreenHeight = 420;
+
 //VAO globals
 GLuint gVertexArrayObject = 0;
 //VBO globals
 GLuint gVertexBufferObject = 0;
 //Functions
 GLuint gGraphicsPipelineShaderProgram = 0;
-//char* vs std::string&
-//std.cString
+
+std::string gVertexShaderSource =
+"#version 410 core\n"
+"in vec4 position;\n"
+"void main(void)\n"
+"{\n"
+"gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
+"}\n";
+
+std::string gFragmentShaderSource =
+"#version 410 core\n"
+"out vec4 color;\n"
+"void main(void)\n"
+"{\n"
+"color = vec4(1.0f,0.5f,0.0f,1.0f);\n"
+"}\n";
+
 GLuint CompileShader(GLuint type,std::string& source) {
 	GLuint shaderObject;
 	if (type == GL_FRAGMENT_SHADER) {
@@ -46,25 +65,9 @@ GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmen
 	glLinkProgram(programObject);
 	return programObject;
 }
+
 void CreateGraphicsPipeline() {
-	
-	std::string vertexShaderSource=
-		"#version 410 core\n"
-		"in vec4 position;\n"
-		"void main(void)\n"
-		"{\n"
-		"gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
-		"}\n";
-
-	std::string fragmentShaderSource =
-		"#version 410 core\n"
-		"out vec4 color;\n"
-		"void main(void)\n"
-		"{\n"
-		"color = vec4(1.0f,0.5f,0.0f,1.0f);\n"
-		"}\n";
-
-	gGraphicsPipelineShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
+	gGraphicsPipelineShaderProgram = CreateShaderProgram(gVertexShaderSource, gFragmentShaderSource);
 }
 void GetOpenGLVersionInfo() {
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
@@ -135,11 +138,18 @@ return 0;
 }
 
 void PreDraw(){
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glViewport(0, 0, gScreenWidth, gScreenHeight);
 	glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(gGraphicsPipelineShaderProgram);
 
 }
-void Draw(){}
+void Draw(){
+	glBindVertexArray(gVertexArrayObject);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
 void MainLoop() {
 	while (!gQuit) 
 	{
@@ -157,7 +167,7 @@ void CleanUp(){
 int main(){
 	InitalizeProgram("Nick",640,480);
 	VertexSpecifiction();
-	//CreateGraphicsPipeline();
+	CreateGraphicsPipeline();
 	MainLoop();
 	CleanUp();
 	return 0;
