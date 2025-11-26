@@ -5,6 +5,8 @@
 #include <cstring>
 #include <string>
 //GLOBALS
+GLuint gScreenWidth = 640;
+GLuint gScreenHeight = 480;
 SDL_Window* mWindow = nullptr;
 SDL_GLContext gOpenGLContext = nullptr;
 
@@ -12,8 +14,7 @@ SDL_Surface* mSurface;
 
 bool gQuit = false;
 
-GLuint gScreenWidth = 320;
-GLuint gScreenHeight = 420;
+
 
 //VAO globals
 GLuint gVertexArrayObject = 0;
@@ -22,6 +23,7 @@ GLuint gVertexBufferObject = 0;
 //Functions
 GLuint gGraphicsPipelineShaderProgram = 0;
 
+//SHADERS
 std::string gVertexShaderSource =
 "#version 410 core\n"
 "in vec4 position;\n"
@@ -47,6 +49,7 @@ GLuint CompileShader(GLuint type,std::string& source) {
 	{
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
 	}
+
 		const char* src = source.c_str();
 		glShaderSource(shaderObject, 1, &src, nullptr);
 		glCompileShader(shaderObject);
@@ -62,6 +65,7 @@ GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmen
 
 	glAttachShader(programObject, vertexShader);
 	glAttachShader(programObject, fragmentShader);
+
 	glLinkProgram(programObject);
 	return programObject;
 }
@@ -83,12 +87,14 @@ void VertexSpecifiction() {
 	glGenVertexArrays(1, &gVertexArrayObject);
 	glBindVertexArray(gVertexArrayObject);//Select the vertex array I created
 	
-		glGenBuffers(1, &gVertexBufferObject);//generate VBO
+	glGenBuffers(1, &gVertexBufferObject);//generate VBO
 	glBindBuffer(GL_ARRAY_BUFFER, gVertexArrayObject);
+
+	//COPIES DATA
 	glBufferData(GL_ARRAY_BUFFER, vertexPosition.size() * sizeof(GLfloat), vertexPosition.data(), GL_STATIC_DRAW);
 	glEnableVertexArrayAttrib(gVertexArrayObject, 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glBindVertexArray(0);
+	glBindVertexArray(0);//Unselect Vertex ARRAY
 	glDisableVertexAttribArray(0);
 }
 int InitalizeProgram(const char* title,int width,int height) {
@@ -97,11 +103,11 @@ int InitalizeProgram(const char* title,int width,int height) {
 		return 3;
 	}
 		//OpenGL Version 3
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 1);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 		mWindow = SDL_CreateWindow(title, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 		if (mWindow == NULL) {
@@ -110,7 +116,7 @@ int InitalizeProgram(const char* title,int width,int height) {
 		}
 
 		SDL_SetWindowTitle(mWindow, title);
-		gOpenGLContext = SDL_GL_CreateContext(mWindow);
+		gOpenGLContext = SDL_GL_CreateContext(mWindow);//OpenGL object
 		
 
 		if (gOpenGLContext == nullptr)
@@ -118,7 +124,7 @@ int InitalizeProgram(const char* title,int width,int height) {
 			std::cout << "OpenGL could not be loaded" << std::endl;
 		}
 		
-		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)){
+		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)){// INIT GLAD LIBRARY. BRINGS OPENGL functions
 			std::cout << "Failed to load GLAD" << std::endl;
 			exit(1);
 		}
@@ -147,8 +153,11 @@ void PreDraw(){
 
 }
 void Draw(){
-	glBindVertexArray(gVertexArrayObject);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glBindVertexArray(gVertexArrayObject);//Collection of data
+	glBindBuffer(GL_ARRAY_BUFFER, gVertexArrayObject);//take collection of data
+	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick of Graphics Pipeline. Draw from data
+	glUseProgram(0);//CLEANUP
+
 }
 void MainLoop() {
 	while (!gQuit) 
@@ -156,7 +165,8 @@ void MainLoop() {
 		Input();
 		PreDraw();
 		Draw();
-		SDL_GL_SwapWindow(mWindow);//updates screen
+		SDL_GL_SwapWindow(mWindow);//updates screen. Takes what is drawn in back buffer and presents to front buffer
+
 	}
 }
 void CleanUp(){
@@ -167,8 +177,9 @@ void CleanUp(){
 int main(){
 	InitalizeProgram("Nick",640,480);
 	VertexSpecifiction();
-	CreateGraphicsPipeline();
-	MainLoop();
+	CreateGraphicsPipeline();//Creates vertex and frag shaders
+	MainLoop();//Draws Triangle
+
 	CleanUp();
 	return 0;
 }
