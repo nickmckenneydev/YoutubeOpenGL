@@ -17,9 +17,9 @@ bool gQuit = false;
 
 
 //VAO globals
-GLuint gVertexArrayObject = 0;
+GLuint VAO = 0;
 //VBO globals
-GLuint gVertexBufferObject = 0;
+GLuint VBO = 0;
 //Functions
 GLuint gGraphicsPipelineShaderProgram = 0;
 
@@ -84,17 +84,19 @@ void VertexSpecifiction() {
 		0.8f,-0.8f,0,
 		-0.0f,0.8f,0,
 	};
-	glGenVertexArrays(1, &gVertexArrayObject);
-	glBindVertexArray(gVertexArrayObject);//Select the vertex array I created
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);//generate buffer ID, Manages memory. Stored vertices in gpu
+
+	glBindVertexArray(VAO);//Select the vertex array I created
 	
-	glGenBuffers(1, &gVertexBufferObject);//generate VBO
-	glBindBuffer(GL_ARRAY_BUFFER, gVertexArrayObject);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	//COPIES DATA
 	glBufferData(GL_ARRAY_BUFFER, vertexPosition.size() * sizeof(GLfloat), vertexPosition.data(), GL_STATIC_DRAW);
-	//glEnableVertexArrayAttrib(gVertexArrayObject, 0);
-	glEnableVertexAttribArray(0);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+
 	glBindVertexArray(0);//Unselect Vertex ARRAY
 	glDisableVertexAttribArray(0);
 }
@@ -147,15 +149,15 @@ return 0;
 void PreDraw(){
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glViewport(0, 0, gScreenWidth, gScreenHeight);
+	glViewport(0, 0, gScreenWidth, gScreenHeight);//Device coordinates transformed to screen space coords. This will be input to fragment shader
 	glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gGraphicsPipelineShaderProgram);
 
 }
 void Draw(){
-	glBindVertexArray(gVertexArrayObject);//Collection of data
-	glBindBuffer(GL_ARRAY_BUFFER, gVertexArrayObject);//take collection of data
+	glBindVertexArray(VAO);//Collection of data
+	glBindBuffer(GL_ARRAY_BUFFER, VAO);//take collection of data
 	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick of Graphics Pipeline. Draw from data
 	glUseProgram(0);//CLEANUP
 
@@ -191,4 +193,9 @@ int main(){
 //VBO -> Actual Data  glGenBuffer,glBindBuffer,glBufferData
 
 //Vertex Specificiation -> VAO and VBO -> veritices
-//Vertex shader
+//Vertex shader takes in input a single vertex
+//Primitive assembly takes in input the vertices and assembles it
+//rasterization takes output of primitive asm and maps it to screen -> Fragments
+//fragment shader calcs color
+
+//I am required to define vertex and fragment shader
