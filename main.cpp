@@ -20,18 +20,51 @@ GLuint gGraphicsPipelineShaderProgram = 0;
 //char* vs std::string&
 //std.cString
 GLuint CompileShader(GLuint type,std::string& source) {
+	GLuint shaderObject;
+	if (type == GL_FRAGMENT_SHADER) {
+		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
+	}
+	else if (type == GL_VERTEX_SHADER)
+	{
+		shaderObject = glCreateShader(GL_VERTEX_SHADER);
+	}
+		const char* src = source.c_str();
+		glShaderSource(shaderObject, 1, &src, nullptr);
+		glCompileShader(shaderObject);
 
+		return shaderObject;
+	
 }
 GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmentShaderSource) {
 	GLuint programObject = glCreateProgram();
+
 	GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
 	GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+
+	glAttachShader(programObject, vertexShader);
+	glAttachShader(programObject, fragmentShader);
+	glLinkProgram(programObject);
+	return programObject;
 }
 void CreateGraphicsPipeline() {
 	
-	std::string vs="w";
-	std::string fs="a";
-	gGraphicsPipelineShaderProgram = CreateShaderProgram(vs, fs);
+	std::string vertexShaderSource=
+		"#version 410 core\n"
+		"in vec4 position;\n"
+		"void main(void)\n"
+		"{\n"
+		"gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
+		"}\n";
+
+	std::string fragmentShaderSource =
+		"#version 410 core\n"
+		"out vec4 color;\n"
+		"void main(void)\n"
+		"{\n"
+		"color = vec4(1.0f,0.5f,0.0f,1.0f);\n"
+		"}\n";
+
+	gGraphicsPipelineShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 }
 void GetOpenGLVersionInfo() {
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
@@ -122,16 +155,6 @@ void CleanUp(){
 	SDL_Quit();
 }
 int main(){
-	std::string goatName = "gruff";
-
-	char* goatNameAsCStr = goatName.data();
-	std::cout << "&goatName:" << &goatName << std::endl;
-	std::cout << "&goatNameAsCStr:" << &goatNameAsCStr << std::endl;
-	goatNameAsCStr[0] -= 32;
-	std::cout << "&goatName.c_str()" << &goatName.c_str() << std::endl;
-
-
-
 	InitalizeProgram("Nick",640,480);
 	VertexSpecifiction();
 	//CreateGraphicsPipeline();
