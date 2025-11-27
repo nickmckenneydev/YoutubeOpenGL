@@ -105,21 +105,21 @@ void VertexSpecifiction() {
 		0.8f,-0.8f,0,
 		-0.0f,0.8f,0,
 	};
+	//---------------------------------------------
+	// generate buffer ID, Manages memory. Stored vertices in gpu
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);//generate buffer ID, Manages memory. Stored vertices in gpu
+	glGenBuffers(1, &VBO);
+	//--------------------------------------------
 
 	glBindVertexArray(VAO);//Select the vertex array I created
 	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	//COPIES DATA
 	glBufferData(GL_ARRAY_BUFFER, vertexPosition.size() * sizeof(GLfloat), vertexPosition.data(), GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);//Registers VBO as the vertex attribute
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(0);//Unselect Vertex ARRAY
-	glDisableVertexAttribArray(0);
+	glBindVertexArray(0);//Unbinding VAO so other calls dont modify VAO. TO modify a VAO i need to call glBindVertexArray
 }
 int InitalizeProgram(const char* title,int width,int height) {
 	if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -179,7 +179,7 @@ void PreDraw(){
 }
 void Draw(){
 	glBindVertexArray(VAO);//Collection of data
-	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick of Graphics Pipeline. Draw from data
+	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick off Graphics Pipeline. Draw from data
 	glBindVertexArray(0);
 	glUseProgram(0);//CLEANUP
 
