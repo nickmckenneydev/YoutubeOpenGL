@@ -27,4 +27,8 @@
       <Filter>Source Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\frag.glsl" />
+    <None Include="shaders\vert.glsl" />
+  </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <fstream>
 //GLOBALS
 GLuint gScreenWidth = 640;
 GLuint gScreenHeight = 480;
@@ -23,41 +24,73 @@ GLuint VBO = 0;
 //Functions
 GLuint gGraphicsPipelineShaderProgram = 0;
 
-//SHADERS
-std::string gVertexShaderSource =
-"#version 410 core\n"
-"in vec4 position;\n"
-"void main(void)\n"
-"{\n"
-"gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
-"}\n";
+//std::string LoadShaderAsString(const std::string& filename)
+//{
+//	//Shader program
+//	std::string result = "";
+//	std::string line = "";
+//	std::ifstream myFile(filename);
+//	if (myFile.is_open()) {
+//		while (std::getline(myFile, line))
+//		{
+//			result += line + '\n';
+//		}
+//		myFile.close();
+//	}
+//	return result;
+//
+//}
+std::string LoadShaderAsString(const std::string& filename)
+{
+	std::string result = "";
+	std::string line = "";
+	std::ifstream myFile(filename);
 
-std::string gFragmentShaderSource =
-"#version 410 core\n"
-"out vec4 color;\n"
-"void main(void)\n"
-"{\n"
-"color = vec4(1.0f,0.5f,0.0f,1.0f);\n"
-"}\n";
+	if (myFile.is_open()) {
+		while (std::getline(myFile, line))
+		{
+			result += line + '\n';
+		}
+		myFile.close();
+	}
+	else {
+		// --- ADD THIS ERROR MESSAGE ---
+		std::cerr << "ERROR: Unable to open file: " << filename << std::endl;
+		std::cerr << "Check your file path and 'Working Directory'!" << std::endl;
+	}
 
-GLuint CompileShader(GLuint type,std::string& source) {
+	return result;
+}
+GLuint CompileShader(GLuint type, const std::string& source) {
 	GLuint shaderObject;
 	if (type == GL_FRAGMENT_SHADER) {
 		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
 	}
-	else if (type == GL_VERTEX_SHADER)
-	{
+	else if (type == GL_VERTEX_SHADER) {
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
 	}
 
-		const char* src = source.c_str();
-		glShaderSource(shaderObject, 1, &src, nullptr);
-		glCompileShader(shaderObject);
+	const char* src = source.c_str();
+	glShaderSource(shaderObject, 1, &src, nullptr);
+	glCompileShader(shaderObject);
 
-		return shaderObject;
-	
+	int result;
+	glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE) {
+		int length;
+		glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
+		char* message = (char*)alloca(length * sizeof(char));
+		glGetShaderInfoLog(shaderObject, length, &length, message);
+		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+		std::cout << message << std::endl;
+		glDeleteShader(shaderObject);
+		return 0;
+	}
+
+
+	return shaderObject;
 }
-GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmentShaderSource) {
+GLuint CreateShaderProgram(std::string& vertexShaderSource,std::string& fragmentShaderSource) {
 	GLuint programObject = glCreateProgram();
 
 	GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
@@ -71,7 +104,11 @@ GLuint CreateShaderProgram(std::string& vertexShaderSource, std::string& fragmen
 }
 
 void CreateGraphicsPipeline() {
-	gGraphicsPipelineShaderProgram = CreateShaderProgram(gVertexShaderSource, gFragmentShaderSource);
+	std::string vertexShaderSource = LoadShaderAsString("./vert.glsl");
+
+	std::string fragmentShaderSource = LoadShaderAsString("./frag.glsl");
+
+	gGraphicsPipelineShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
 }
 void GetOpenGLVersionInfo() {
 	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
@@ -150,15 +187,16 @@ void PreDraw(){
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glViewport(0, 0, gScreenWidth, gScreenHeight);//Device coordinates transformed to screen space coords. This will be input to fragment shader
-	glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(gGraphicsPipelineShaderProgram);
+
 
 }
 void Draw(){
 	glBindVertexArray(VAO);//Collection of data
-	glBindBuffer(GL_ARRAY_BUFFER, VAO);//take collection of data
 	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick of Graphics Pipeline. Draw from data
+	glBindVertexArray(0);
 	glUseProgram(0);//CLEANUP
 
 }
@@ -179,7 +217,7 @@ void CleanUp(){
 }
 int main(){
 	InitalizeProgram("Nick",640,480);
-	VertexSpecifiction();
+	VertexSpecifiction();//Specifies Verticies and what to do with them
 	CreateGraphicsPipeline();//Creates vertex and frag shaders
 	MainLoop();//Draws Triangle
 
