@@ -1,223 +1,169 @@
-#include <SDL3/SDL.h>
-#include <glad/glad.h>
-#include <iostream>
-#include <vector>
-#include <cstring>
-#include <string>
-#include <fstream>
-//GLOBALS
-GLuint gScreenWidth = 640;
-GLuint gScreenHeight = 480;
-SDL_Window* mWindow = nullptr;
-SDL_GLContext gOpenGLContext = nullptr;
+#include<iostream>
+#include<glad/glad.h>
+#include<GLFW/glfw3.h>
 
-SDL_Surface* mSurface;
-
-bool gQuit = false;
-
-
-
-//VAO globals
-GLuint VAO = 0;
-//VBO globals
-GLuint VBO = 0;
-//Functions
-GLuint gGraphicsPipelineShaderProgram = 0;
+// Vertex Shader source code
+const char* vertexShaderSource = "#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"void main()\n"
+"{\n"
+"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"}\0";
+//Fragment Shader source code
+const char* fragmentShaderSource = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"void main()\n"
+"{\n"
+"   FragColor = vec4(0.8f, 0.3f, 0.02f, 1.0f);\n"
+"}\n\0";
 
 
-std::string LoadShaderAsString(const std::string& filename)
+
+int main()
 {
-	std::string result = "";
-	std::string line = "";
-	std::ifstream myFile(filename);
+	// Initialize GLFW
+	glfwInit();
 
-	if (myFile.is_open()) {
-		while (std::getline(myFile, line))
-		{
-			result += line + '\n';
-		}
-		myFile.close();
+	// Tell GLFW what version of OpenGL we are using 
+	// In this case we are using OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Tell GLFW we are using the CORE profile
+	// So that means we only have the modern functions
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+	GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+	// Error check if the window fails to create
+	if (window == NULL)
+	{
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
 	}
-	else {
-		std::cerr << "ERROR: Unable to open file: " << filename << std::endl;
-		std::cerr << "Check your file path and 'Working Directory'!" << std::endl;
-	}
+	// Introduce the window into the current context
+	glfwMakeContextCurrent(window);
 
-	return result;
-}
-GLuint CompileShader(GLuint type, const std::string& source) {
-	GLuint shaderObject;
-	if (type == GL_FRAGMENT_SHADER) {
-		shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-	}
-	else if (type == GL_VERTEX_SHADER) {
-		shaderObject = glCreateShader(GL_VERTEX_SHADER);
-	}
-
-	const char* src = source.c_str();
-	glShaderSource(shaderObject, 1, &src, nullptr);
-	glCompileShader(shaderObject);
-
-	int result;
-	glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE) {
-		int length;
-		glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*)malloc(length * sizeof(char));
-		glGetShaderInfoLog(shaderObject, length, &length, message);
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-		std::cout << message << std::endl;
-		glDeleteShader(shaderObject);
-		return 0;
-	}
+	//Load GLAD so it configures OpenGL
+	gladLoadGL();
+	// Specify the viewport of OpenGL in the Window
+	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+	glViewport(0, 0, 800, 800);
 
 
-	return shaderObject;
-}
-GLuint CreateShaderProgram(std::string& vertexShaderSource,std::string& fragmentShaderSource) {
-	GLuint programObject = glCreateProgram();
 
-	GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
-	GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+	// Create Vertex Shader Object and get its reference
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	// Attach Vertex Shader source to the Vertex Shader Object
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	// Compile the Vertex Shader into machine code
+	glCompileShader(vertexShader);
 
-	glAttachShader(programObject, vertexShader);
-	glAttachShader(programObject, fragmentShader);
+	// Create Fragment Shader Object and get its reference
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	// Attach Fragment Shader source to the Fragment Shader Object
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	// Compile the Vertex Shader into machine code
+	glCompileShader(fragmentShader);
 
-	glLinkProgram(programObject);
-	return programObject;
-}
+	// Create Shader Program Object and get its reference
+	GLuint shaderProgram = glCreateProgram();
+	// Attach the Vertex and Fragment Shaders to the Shader Program
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	// Wrap-up/Link all the shaders together into the Shader Program
+	glLinkProgram(shaderProgram);
 
-void CreateGraphicsPipeline() {
-	std::string vertexShaderSource = LoadShaderAsString("./vert.glsl");
+	// Delete the now useless Vertex and Fragment Shader objects
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 
-	std::string fragmentShaderSource = LoadShaderAsString("./frag.glsl");
 
-	gGraphicsPipelineShaderProgram = CreateShaderProgram(vertexShaderSource, fragmentShaderSource);
-}
-void GetOpenGLVersionInfo() {
-	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
-}
-void VertexSpecifiction() {
-	//create verticies on CPU side
-	const std::vector<GLfloat> vertexPosition{
-		-0.8f,-0.8f,0,
-		0.8f,-0.8f,0,
-		-0.0f,0.8f,0,
+
+	// Vertices coordinates
+	GLfloat vertices[] =
+	{
+		-0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower left corner
+		0.5f, -0.5f * float(sqrt(3)) / 3, 0.0f, // Lower right corner
+		0.0f, 0.5f * float(sqrt(3)) * 2 / 3, 0.0f, // Upper corner
+		-0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // Inner left
+		0.5f / 2, 0.5f * float(sqrt(3)) / 6, 0.0f, // Inner right
+		0.0f, -0.5f * float(sqrt(3)) / 3, 0.0f // Inner down
 	};
-	//---------------------------------------------
-	// generate buffer ID, Manages memory. Stored vertices in gpu
+
+	// Indices for vertices order
+	GLuint indices[] =
+	{
+		0, 3, 5, // Lower left triangle
+		3, 2, 4, // Upper triangle
+		5, 4, 1 // Lower right triangle
+	};
+
+	// Create reference containers for the Vartex Array Object, the Vertex Buffer Object, and the Element Buffer Object
+	GLuint VAO, VBO, EBO;
+
+	// Generate the VAO, VBO, and EBO with only 1 object each
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	//--------------------------------------------
+	glGenBuffers(1, &EBO);
 
-	glBindVertexArray(VAO);//Select the vertex array I created
-	
+	// Make the VAO the current Vertex Array Object by binding it
+	glBindVertexArray(VAO);
+
+	// Bind the VBO specifying it's a GL_ARRAY_BUFFER
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexPosition.size() * sizeof(GLfloat), vertexPosition.data(), GL_STATIC_DRAW);
+	// Introduce the vertices into the VBO
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);//Registers VBO as the vertex attribute
+	// Bind the EBO specifying it's a GL_ELEMENT_ARRAY_BUFFER
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	// Introduce the indices into the EBO
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// Configure the Vertex Attribute so that OpenGL knows how to read the VBO
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	// Enable the Vertex Attribute so that OpenGL knows to use it
 	glEnableVertexAttribArray(0);
 
-	glBindVertexArray(0);//Unbinding VAO so other calls dont modify VAO. TO modify a VAO i need to call glBindVertexArray
-}
-int InitalizeProgram(const char* title,int width,int height) {
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
-		return 3;
-	}
-		//OpenGL Version 3
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-		mWindow = SDL_CreateWindow(title, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-		if (mWindow == NULL) {
-			SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
-			return 1;
-		}
-
-		SDL_SetWindowTitle(mWindow, title);
-		gOpenGLContext = SDL_GL_CreateContext(mWindow);//OpenGL object
-		
-
-		if (gOpenGLContext == nullptr)
-		{
-			std::cout << "OpenGL could not be loaded" << std::endl;
-		}
-		
-		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)){// INIT GLAD LIBRARY. BRINGS OPENGL functions
-			std::cout << "Failed to load GLAD" << std::endl;
-			exit(1);
-		}
-		
-}		
-int Input() {
-	SDL_Event event;
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_EVENT_QUIT) {
-			gQuit = true;
-			SDL_DestroyWindow(mWindow);
-			SDL_Quit();
-		}
-	}
-
-return 0;
-}
-
-void PreDraw(){
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glViewport(0, 0, gScreenWidth, gScreenHeight);//Device coordinates transformed to screen space coords. This will be input to fragment shader
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(gGraphicsPipelineShaderProgram);
-
-
-}
-void Draw(){
-	glBindVertexArray(VAO);//Collection of data
-	glDrawArrays(GL_TRIANGLES, 0, 3);//Kick off Graphics Pipeline. Draw from data
+	// Bind both the VBO and VAO to 0 so that we don't accidentally modify the VAO and VBO we created
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	glUseProgram(0);//CLEANUP
+	// Bind the EBO to 0 so that we don't accidentally modify it
+	// MAKE SURE TO UNBIND IT AFTER UNBINDING THE VAO, as the EBO is linked in the VAO
+	// This does not apply to the VBO because the VBO is already linked to the VAO during glVertexAttribPointer
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-}
-void MainLoop() {
-	while (!gQuit) 
+
+
+	// Main while loop
+	while (!glfwWindowShouldClose(window))
 	{
-		Input();
-		PreDraw();
-		Draw();
-		SDL_GL_SwapWindow(mWindow);//updates screen. Takes what is drawn in back buffer and presents to front buffer
-
+		// Specify the color of the background
+		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		// Clean the back buffer and assign the new color to it
+		glClear(GL_COLOR_BUFFER_BIT);
+		// Tell OpenGL which Shader Program we want to use
+		glUseProgram(shaderProgram);
+		// Bind the VAO so OpenGL knows to use it
+		glBindVertexArray(VAO);
+		// Draw primitives, number of indices, datatype of indices, index of indices
+		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		// Swap the back buffer with the front buffer
+		glfwSwapBuffers(window);
+		// Take care of all GLFW events
+		glfwPollEvents();
 	}
-}
-void CleanUp(){
-	SDL_GL_DestroyContext(gOpenGLContext);
-	SDL_DestroyWindow(mWindow);
-	SDL_Quit();
-}
-int main(){
-	InitalizeProgram("Nick",640,480);
-	VertexSpecifiction();//Specifies Verticies and what to do with them
-	CreateGraphicsPipeline();//Creates vertex and frag shaders
-	MainLoop();//Draws Triangle
 
-	CleanUp();
+
+
+	// Delete all the objects we've created
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
+	glDeleteProgram(shaderProgram);
+	// Delete window before ending the program
+	glfwDestroyWindow(window);
+	// Terminate GLFW before ending the program
+	glfwTerminate();
 	return 0;
 }
-
-//notes
-// glGen -> Allocation
-//VAO -> How to Access VBO glGenVertexArrays,glBindVertexArray
-//VBO -> Actual Data  glGenBuffer,glBindBuffer,glBufferData
-
-//Vertex Specificiation -> VAO and VBO -> veritices
-//Vertex shader takes in input a single vertex
-//Primitive assembly takes in input the vertices and assembles it
-//rasterization takes output of primitive asm and maps it to screen -> Fragments
-//fragment shader calcs color
-
-//I am required to define vertex and fragment shader
