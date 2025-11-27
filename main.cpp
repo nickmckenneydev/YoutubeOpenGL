@@ -24,22 +24,7 @@ GLuint VBO = 0;
 //Functions
 GLuint gGraphicsPipelineShaderProgram = 0;
 
-//std::string LoadShaderAsString(const std::string& filename)
-//{
-//	//Shader program
-//	std::string result = "";
-//	std::string line = "";
-//	std::ifstream myFile(filename);
-//	if (myFile.is_open()) {
-//		while (std::getline(myFile, line))
-//		{
-//			result += line + '\n';
-//		}
-//		myFile.close();
-//	}
-//	return result;
-//
-//}
+
 std::string LoadShaderAsString(const std::string& filename)
 {
 	std::string result = "";
@@ -54,7 +39,6 @@ std::string LoadShaderAsString(const std::string& filename)
 		myFile.close();
 	}
 	else {
-		// --- ADD THIS ERROR MESSAGE ---
 		std::cerr << "ERROR: Unable to open file: " << filename << std::endl;
 		std::cerr << "Check your file path and 'Working Directory'!" << std::endl;
 	}
@@ -79,7 +63,7 @@ GLuint CompileShader(GLuint type, const std::string& source) {
 	if (result == GL_FALSE) {
 		int length;
 		glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*)alloca(length * sizeof(char));
+		char* message = (char*)malloc(length * sizeof(char));
 		glGetShaderInfoLog(shaderObject, length, &length, message);
 		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
 		std::cout << message << std::endl;
