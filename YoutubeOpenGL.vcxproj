@@ -150,8 +150,8 @@
     <Image Include="..\..\Users\Nick\Downloads\test.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\frag.glsl" />
-    <None Include="shaders\vert.glsl" />
+    <None Include="frag.glsl" />
+    <None Include="vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

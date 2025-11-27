@@ -28,7 +28,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\frag.glsl" />
-    <None Include="shaders\vert.glsl" />
+    <None Include="frag.glsl" />
+    <None Include="vert.glsl" />
   </ItemGroup>
 </Project>
