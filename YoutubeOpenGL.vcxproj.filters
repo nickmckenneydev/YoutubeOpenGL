@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Resource Files\shaders">
+    <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{073c1eff-23b8-4816-929c-1a5ec23878cd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -44,10 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="default.vert">
-      <Filter>Resource Files\shaders</Filter>
+      <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="default.frag">
-      <Filter>Resource Files\shaders</Filter>
+      <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
