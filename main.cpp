@@ -8,11 +8,15 @@ namespace fs = std::filesystem;
 #include<GLFW/glfw3.h>
 #include<stb/stb_image.h>
 
-//#include"Texture.h"
+#include"Texture.h"
 #include"shaderClass.h"
 #include"VAO.h"
 #include"VBO.h"
 #include"EBO.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 
@@ -31,8 +35,6 @@ GLuint indices[] =
 	0, 2, 1, // Upper triangle
 	0, 3, 2 // Lower triangle
 };
-
-
 
 int main()
 {
@@ -67,7 +69,7 @@ int main()
 
 
 
-	// Generates Shader object using shaders defualt.vert and default.frag
+	// Generates Shader object using shaders default.vert and default.frag
 	Shader shaderProgram("default.vert", "default.frag");
 
 
@@ -85,55 +87,50 @@ int main()
 	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
 	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-
 	// Unbind all to prevent accidentally modifying them
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-	// Gets ID of uniform called "scale"
-	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
-	int widthImg, heightImg, numColCh;
-	std::cout << "--- Listing files in current directory ---" << std::endl;
-	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::current_path())) {
-		std::cout << entry.path().filename() << std::endl;
-	}
-	std::cout << "----------------------------------------" << std::endl;
-	// ---------------------------------------
-
-	unsigned char* bytes = stbi_load("pop_cat.png", &widthImg, &heightImg, &numColCh, 4);
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	
+	
 
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg,heightImg,0,GL_RGBA,GL_UNSIGNED_BYTE,bytes);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	/*
+	* I'm doing this relative path thing in order to centralize all the resources into one folder and not
+	* duplicate them between tutorial folders. You can just copy paste the resources from the 'Resources'
+	* folder and then give a relative path from this folder to whatever resource you want to get to.
+	* Also note that this requires C++17, so go to Project Properties, C/C++, Language, and select C++17
+	*/
+	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
 
-	stbi_image_free(bytes);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	std::string texPath = "/YoutubeOpenGL/";
+	// Texture
+	Texture popCat((parentDir + texPath + "pop_cat.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	popCat.texUnit(shaderProgram, "tex0", 0);
 
-	GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
-	shaderProgram.Activate();
-	glUniform1i(tex0Uni,0);
+	
+
+	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "transform");
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+	
 		// Specify the color of the background
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
 		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
+		glUniformMatrix4fv(uniID, 1, GL_FALSE, glm::value_ptr(trans));
 		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
 		glUniform1f(uniID, 0.5f);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// Binds texture so that is appears in rendering
+		popCat.Bind();
 		// Bind the VAO so OpenGL knows to use it
 		VAO1.Bind();
 		// Draw primitives, number of indices, datatype of indices, index of indices
@@ -150,7 +147,7 @@ int main()
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
-	glDeleteTextures(1, &texture);
+	popCat.Delete();
 	shaderProgram.Delete();
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
