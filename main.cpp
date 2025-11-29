@@ -108,11 +108,12 @@ int main()
 	//TEXTURES
 	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
 	std::string texPath = "/YoutubeOpenGL/";
-
+	shaderProgram.Activate();
 	Texture texture1((parentDir + texPath + "pop_cat.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
-	texture1.texUnit(shaderProgram, "texture1", 0);//setInt
 	
-
+	
+	Texture texture2((parentDir + texPath + "pop_cat2.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE1, GL_RGBA, GL_UNSIGNED_BYTE);
+	texture1.texUnit(shaderProgram, "tex0", 0);//ourShader.setInt("texture1", 0);
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
 	float rotation = 0.0f;
@@ -130,7 +131,6 @@ int main()
 			prevTime = crntTime;
 		}
 
-		texture1.Bind(GL_TEXTURE0);// glActiveTexture(slot) && glBindTexture(type, ID);
 
 		// Initializes matrices so they are not the null matrix
 		glm::mat4 model = glm::mat4(1.0f);
@@ -149,14 +149,19 @@ int main()
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
+		texture1.texUnit(shaderProgram, "tex0", 0);
 		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
 		glUniform1f(uniID, 0.5f);
 		// Binds texture so that is appears in rendering
 		texture1.Bind(GL_TEXTURE0);
+		
 		// Bind the VAO so OpenGL knows to use it
 		VAO1.Bind();
 		// Draw primitives, number of indices, datatype of indices, index of indices
+		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+		texture1.texUnit(shaderProgram, "tex0", 1);
+		texture2.Bind(GL_TEXTURE1);
+		VAO2.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
