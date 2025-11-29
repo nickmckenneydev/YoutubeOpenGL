@@ -158,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Users\Nick\Downloads\test.bmp" />
+    <Image Include="..\..\Users\Nick\Pictures\pop_cat2.png" />
     <Image Include="pop_cat.png" />
   </ItemGroup>
   <ItemGroup>
