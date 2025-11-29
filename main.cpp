@@ -37,11 +37,11 @@ GLfloat vertices1[] =
 GLfloat vertices2[] =
 {
 	//     COORDINATES     /        COLORS      /   TexCoord  //
-	 1.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f, // (-0.5 + 2.0)
-	 1.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f, // (-0.5 + 2.0)
-	 2.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f, // ( 0.5 + 2.0)
-	 2.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f, // ( 0.5 + 2.0)
-	 2.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,    2.5f, 5.0f  // ( 0.0 + 2.0)
+	-0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f,
+	-0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f,
+	 0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f,
+	 0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f,
+	 0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,    2.5f, 5.0f
 };
 
 GLuint indices[] =
@@ -58,18 +58,12 @@ GLuint indices[] =
 
 int main()
 {
-	// Initialize GLFW
 	glfwInit();
-	// Tell GLFW what version of OpenGL we are using 
-	// In this case we are using OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// Tell GLFW we are using the CORE profile
-	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow* window = glfwCreateWindow(width, height, "YoutubeOpenGL", NULL, NULL);
-	// Error check if the window fails to create
+	GLFWwindow* window = glfwCreateWindow(width, height, "NickNick", NULL, NULL);
+	
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -77,18 +71,32 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
 	gladLoadGL();
 	glViewport(0, 0, width, height);
 	Shader shaderProgram("default.vert", "default.frag");
 	
-	VAO VAO1;
-	VAO1.Bind();
+	//VAO VAO1;
+	GLuint myVAO_ID; // Just a simple integer
+	glGenVertexArrays(1, &myVAO_ID); // Create it
+	glBindVertexArray(myVAO_ID); // Bind it
 	VBO VBO1(vertices1, sizeof(vertices1));
 	EBO EBO1(indices, sizeof(indices));
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	VAO1.Unbind();
+	
+
+		VBO1.Bind();
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		VBO1.Unbind();
+	
+
+	glBindVertexArray(0);
 	VBO1.Unbind();
 	EBO1.Unbind();
 
@@ -96,10 +104,10 @@ int main()
 	VAO2.Bind();
 	VBO VBO2(vertices2, sizeof(vertices2));
 	EBO EBO2(indices, sizeof(indices));
-	VAO2.LinkAttrib(VBO2, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	VAO2.LinkAttrib(VBO2, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0); //glVertexAttribPointer && glEnableVertexAttribArray;
 	VAO2.LinkAttrib(VBO2, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	VAO2.LinkAttrib(VBO2, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	VAO2.Unbind();
+	glBindVertexArray(0);
 	VBO2.Unbind();
 	EBO2.Unbind();
 
@@ -113,11 +121,15 @@ int main()
 	
 	
 	Texture texture2((parentDir + texPath + "pop_cat2.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE1, GL_RGBA, GL_UNSIGNED_BYTE);
-	texture1.texUnit(shaderProgram, "tex0", 0);//ourShader.setInt("texture1", 0);
-	// Enables the Depth Buffer
+	texture1.texUnit(shaderProgram, "tex0", 0);
 	glEnable(GL_DEPTH_TEST);
-	float rotation = 0.0f;
+	float rotation = 0.1f;
 	double prevTime = glfwGetTime();
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 proj = glm::mat4(1.0f);
+	int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -127,53 +139,39 @@ int main()
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
-			rotation += 0.5f;
+			rotation += 0.1f;
 			prevTime = crntTime;
 		}
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
-
-		// Initializes matrices so they are not the null matrix
-		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 proj = glm::mat4(1.0f);
-
-		// Assigns different transformations to each matrix
-		model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-		view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-		proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
-
-		// Outputs the matrices into the Vertex Shader
-		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-		texture1.texUnit(shaderProgram, "tex0", 0);
-		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
-		glUniform1f(uniID, 0.5f);
-		// Binds texture so that is appears in rendering
 		texture1.Bind(GL_TEXTURE0);
-		
-		// Bind the VAO so OpenGL knows to use it
-		VAO1.Bind();
-		// Draw primitives, number of indices, datatype of indices, index of indices
+		glGenVertexArrays(1, &myVAO_ID); // Create it VAO1.Bind();
+		glm::mat4 model1 = glm::mat4(1.0f);
+		model1 = glm::translate(model1, glm::vec3(-0.5f, 0.0f, 0.0f));
+		model1 = glm::rotate(model1, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model1));
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-		texture1.texUnit(shaderProgram, "tex0", 1);
-		texture2.Bind(GL_TEXTURE1);
-		VAO2.Bind();
+
+		texture2.Bind(GL_TEXTURE0);
+		VAO2.Bind(); 
+		glm::mat4 model2 = glm::mat4(1.0f);
+		model2 = glm::translate(model2, glm::vec3(0.5f, 0.0f, 0.0f));
+		model2 = glm::rotate(model2, glm::radians(-rotation*50), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
 	// Delete all the objects
-	VAO1.Delete();
+	glDeleteVertexArrays(1, &myVAO_ID);
 	VBO1.Delete();
 	EBO1.Delete();
 
-	VAO2.Delete();
+	glDeleteVertexArrays(1, &VAO2.ID);//VAO2.Delete();
 	VBO2.Delete();
 	EBO2.Delete();
 	
