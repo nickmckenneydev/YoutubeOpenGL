@@ -60,7 +60,6 @@ int main()
 {
 	// Initialize GLFW
 	glfwInit();
-
 	// Tell GLFW what version of OpenGL we are using 
 	// In this case we are using OpenGL 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -68,7 +67,6 @@ int main()
 	// Tell GLFW we are using the CORE profile
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
 	GLFWwindow* window = glfwCreateWindow(width, height, "YoutubeOpenGL", NULL, NULL);
 	// Error check if the window fails to create
@@ -79,15 +77,10 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-
 	gladLoadGL();
-
 	glViewport(0, 0, width, height);
-
-
-
 	Shader shaderProgram("default.vert", "default.frag");
-	shaderProgram.Activate();
+	
 	VAO VAO1;
 	VAO1.Bind();
 	VBO VBO1(vertices1, sizeof(vertices1));
@@ -110,41 +103,34 @@ int main()
 	VBO2.Unbind();
 	EBO2.Unbind();
 
-	
+	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
 
+	//TEXTURES
 	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
 	std::string texPath = "/YoutubeOpenGL/";
 
+	Texture texture1((parentDir + texPath + "pop_cat.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	texture1.texUnit(shaderProgram, "texture1", 0);//setInt
 	
-	Texture brickTex((parentDir + texPath + "pop_cat.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
-	Texture brickTex1((parentDir + texPath + "pop_cat2.png").c_str(), GL_TEXTURE_2D, GL_TEXTURE1, GL_RGBA, GL_UNSIGNED_BYTE);
-
-	brickTex.texUnit(shaderProgram, "tex0", 0);
-	//brickTex.texUnit(shaderProgram, "tex1", 0);
-
-	float rotation = 0.0f;
-	double prevTime = glfwGetTime();
 
 	// Enables the Depth Buffer
 	glEnable(GL_DEPTH_TEST);
-
+	float rotation = 0.0f;
+	double prevTime = glfwGetTime();
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Specify the color of the background
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		// Clean the back buffer and depth buffer
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// Tell OpenGL which Shader Program we want to use
 		shaderProgram.Activate();
-
-		// Simple timer
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
 			rotation += 0.5f;
 			prevTime = crntTime;
 		}
+
+		texture1.Bind(GL_TEXTURE0);// glActiveTexture(slot) && glBindTexture(type, ID);
 
 		// Initializes matrices so they are not the null matrix
 		glm::mat4 model = glm::mat4(1.0f);
@@ -164,16 +150,12 @@ int main()
 		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-		GLuint uniID = glGetUniformLocation(shaderProgram.ID, "transform");
+		// Assigns a value to the uniform; NOTE: Must always be done after activating the Shader Program
 		glUniform1f(uniID, 0.5f);
 		// Binds texture so that is appears in rendering
-		brickTex.Bind();
+		texture1.Bind(GL_TEXTURE0);
 		// Bind the VAO so OpenGL knows to use it
 		VAO1.Bind();
-		// Draw primitives, number of indices, datatype of indices, index of indices
-		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-
-		VAO2.Bind();
 		// Draw primitives, number of indices, datatype of indices, index of indices
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		// Swap the back buffer with the front buffer
@@ -181,18 +163,18 @@ int main()
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
-
-
-
-	// Delete all the objects we've created
+	// Delete all the objects
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
-	brickTex.Delete();
+
+	VAO2.Delete();
+	VBO2.Delete();
+	EBO2.Delete();
+	
 	shaderProgram.Delete();
-	// Delete window before ending the program
+
 	glfwDestroyWindow(window);
-	// Terminate GLFW before ending the program
 	glfwTerminate();
 	return 0;
 }
