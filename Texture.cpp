@@ -39,9 +39,9 @@ void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
 	glUniform1i(texUni, unit);
 }
 
-void Texture::Bind(int slot)
+void Texture::Bind()
 {
-	glActiveTexture(slot);
+	
 	glBindTexture(type, ID);
 }
 
