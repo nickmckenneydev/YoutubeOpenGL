@@ -151,7 +151,7 @@
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="shader.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VAO.cpp" />
@@ -163,15 +163,22 @@
     <Image Include="pop_cat.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="camera.fs" />
+    <None Include="camera.vs" />
     <None Include="default.frag" />
     <None Include="default.vert" />
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <None Include="texture.fs" />
+    <None Include="texture.vs" />
+    <None Include="transform.fs" />
+    <None Include="transform.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EBO.h" />
-    <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="filesystem.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VAO.h" />
     <ClInclude Include="VBO.h" />

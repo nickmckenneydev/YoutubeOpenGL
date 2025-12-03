@@ -27,7 +27,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="shaderClass.cpp">
+    <ClCompile Include="shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EBO.cpp">
@@ -73,9 +73,27 @@
     <None Include="light.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="texture.vs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="texture.fs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="transform.vs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="transform.fs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="camera.vs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="camera.fs">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="shaderClass.h">
+    <ClInclude Include="shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VBO.h">
@@ -91,6 +109,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="filesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
